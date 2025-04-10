@@ -1,6 +1,9 @@
 ---
 import { getCollection, render } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
+import BooksScore from "../../components/BooksScore.astro";
+import BuyButton from "../../components/BuyButton.astro";
+
 
 export const getStaticPaths = async() => {
     const books = await getCollection("books");
@@ -12,15 +15,18 @@ export const getStaticPaths = async() => {
 };
 
 const { book } = Astro.props;
-console.log(book)
 const { data, slug } = book;
 const { title, author, buy, description, img, readtime } = data;
 
 const { Content } = await render( book );
+
+
+const showButton = import.meta.env.PUBLIC_SHOW_BUY_BUTTON === true;
+export const prerender = true;
 ---
 
 
-<Layout title={`${ book }`}>
+<Layout title={`${ title }`}>
     <div class="flex gap-12 p-12">
         <aside class="flex flex-col items-center gap-4">
             <a href="/" class="hover:underline opacity-70">⬅️ Volver atrás</a>
@@ -28,11 +34,19 @@ const { Content } = await render( book );
                 transition:name={`img-${slug}`}
                 class="rounded w-72 h-auto" 
                 src={`/${ img }`} 
-                alt={ title }/>
+                alt={ title }
+            />
+            <BooksScore server:defer id={ slug } >
+                <span slot="fallback" class="text-xs opacity-70">Cargando puntuación...</span>
+            <BooksScore/>
+
+            {
+                showButton && <BuyButton server:defer buy={ buy } />
+            }
         </aside>
 
         <main class="max-w-3xl">
-            <h1 class="text-4xl font-bold" transition:name={`title-${slug}`} >{ title }</h1>    
+            <h1 class="text-4xl font-bold mb-6" transition:name={`title-${slug}`} >{ title }</h1>    
             <div class="prose prose-invert">
                 <Content />
             </div>
